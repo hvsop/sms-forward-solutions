@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>private-sms · 自托管短信</title>
+<style>body{font:16px/1.7 system-ui,sans-serif;max-width:680px;margin:8vh auto;padding:24px;color:#19253b}a{color:#3048ce}code{overflow-wrap:anywhere}.button{display:block;background:#3048ce;color:white;padding:12px;border-radius:10px;text-align:center;text-decoration:none}</style>
+<h1>private-sms</h1><p>将安卓收到的新 SMS 同步到已配对的 iPhone。请向这个服务的管理员获取你自己的读取令牌。</p>
+<p><a class="button" href="/download/android.apk">下载安卓 App</a></p>
+<p>下载地址固定为当前域名的 <code>/download/android.apk</code>。如果提示 404，管理员尚未发布安装包。安装包下载来源不决定连接的服务，配对时两端必须填写同一 HTTPS 地址。</p>
+<ol><li>iPhone 用读取令牌连接本服务，允许通知。</li><li>在 iPhone 设置中生成安卓配对码。</li><li>安卓填写同一服务地址并输入代码，允许短信权限，开启转发。</li><li>先发送 App 内测试消息，再验证真实短信和锁屏推送。</li></ol>
+<p>每账户一台安卓、一台 iPhone；短信保留 7 天，最多 500 条。服务器运营者可解密短信，当前不是端到端加密。Cloudflare 免费版不提供 Apple 自助登录。</p>
+<p><a href="https://github.com/hvsop/sms-forward-solutions">源码与完整部署文档</a></p></html>

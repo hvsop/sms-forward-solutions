@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer"><meta name="color-scheme" content="light">
+<title>private-sms · 文件分享</title>
+<link rel="stylesheet" href="/share/style.css">
+<script defer src="/share/qrcode.js"></script><script type="module" src="/share/app.js"></script>
+</head>
+<body>
+<header><a class="brand" href="/share" aria-label="private-sms 文件分享首页"><span class="mark">↗</span>private-sms</a><span class="badge">文件分享</span></header>
+<main>
+<section id="sender">
+<div class="intro"><p class="eyebrow">从这台手机，到另一台。</p><h1>文件，轻松送达。</h1><p>选择文件，分享链接。安卓与 iPhone 不在一起，也能轻松传递。</p></div>
+<section id="login" class="card">
+<h2>开启文件分享</h2><p class="muted">使用你的私人启用链接扫码进入，或在这里输入文件分享访问密钥。</p>
+<form id="login-form"><label for="access">分享访问密钥</label><input id="access" type="password" autocomplete="off" spellcheck="false" required placeholder="仅用于文件分享，与短信账号独立">
+<label class="check"><input id="remember" type="checkbox">记住此浏览器（仅限个人设备）</label><button class="primary" id="login-button" type="submit">开启文件分享</button></form>
+<p class="small">接收文件无需登录。分享权限请向服务管理员获取。</p>
+</section>
+<section id="upload-card" class="card" hidden>
+<div class="row"><h2>发送文件</h2><button id="logout" class="text-button" type="button">退出</button></div>
+<div id="drop-zone" class="drop-zone"><span class="file-symbol" aria-hidden="true">↥</span><strong id="selection-title">选择要分享的文件</strong><span id="selection-detail">照片、视频、文档 · 单个文件最高 100 MB</span><input id="file" type="file" hidden><button id="choose-file" class="secondary" type="button">选择文件</button></div>
+<div class="facts"><span>浏览器端加密</span><span>24 小时后过期</span><span>可随时撤销</span></div>
+<button id="upload" class="primary" type="button" disabled>加密并生成分享链接</button>
+<div id="upload-progress" class="progress-area" hidden><progress id="upload-bar" max="100" value="0"></progress><div class="row"><span id="upload-status" role="status"></span><button id="cancel-upload" class="text-button" type="button">取消</button></div></div>
+<p class="small">上传时请保持页面打开；刷新页面后需重新选择文件上传。</p>
+</section>
+<section id="result" class="card" hidden>
+<p class="eyebrow">准备好了</p><h2>把文件交给对方。</h2><p id="result-name" class="filename"></p><p id="result-expiry" class="muted"></p>
+<div id="qr" class="qr" aria-label="文件下载二维码"></div>
+<label for="share-link">下载链接</label><input id="share-link" readonly aria-label="下载链接">
+<div class="button-row"><button id="copy-link" class="primary" type="button">复制链接</button><button id="native-share" class="secondary" type="button">分享…</button></div>
+<p class="small">完整链接包含解密密钥。仅发给接收方；拿到链接的人均可下载。</p><button id="revoke-current" class="danger" type="button">撤销这次分享</button>
+</section>
+<section id="history-card" class="card" hidden><div class="row"><h2>我的有效分享</h2><button id="refresh-list" class="text-button" type="button">刷新</button></div><p class="small">链接仅在当前浏览器会话中保留。即使链接已丢失，仍可撤销服务器上的文件。</p><div id="history"></div></section>
+</section>
+<section id="receiver" hidden>
+<div class="intro"><p class="eyebrow">为你留了一份文件</p><h1>在这台手机上接收。</h1><p>无需安装应用。文件会在浏览器中解密。</p></div>
+<div class="card"><span class="file-symbol" aria-hidden="true">↧</span><h2 id="receive-name">正在读取文件信息…</h2><p id="receive-detail" class="muted"></p>
+<button id="download" class="primary" type="button" disabled>解密并准备下载</button>
+<div id="download-progress" class="progress-area" hidden><progress id="download-bar" max="100" value="0"></progress><p id="download-status" role="status"></p></div>
+<div id="save-actions" hidden><a id="save-file" class="primary button-link" download>保存文件</a><button id="save-native" class="secondary" type="button" hidden>存到文件 / 分享…</button><p class="small">iPhone 可通过分享菜单选择“存储到文件”。</p></div>
+<p class="small">下载时请保持页面打开。发送方撤销分享后，已经保存的副本不会被删除。</p></div>
+<a class="back" href="/share">我也要分享文件 →</a>
+</section>
+<div id="message" role="status" aria-live="polite" hidden></div>
+<details class="privacy"><summary>隐私与使用说明</summary><p>文件名和文件内容在浏览器中使用 AES-GCM 加密。解密密钥位于分享链接的 # 后面，前端不会把它发送给服务器。服务器和 Cloudflare 仍能看到文件大小、访问时间和 IP 等连接信息。</p><p>接收方需信任提供此网页代码的服务运营者。请妥善保管完整链接，不要把自己的分享访问密钥发给接收方。</p><p>文件创建后 24 小时到期；未完成的上传在 1 小时后过期。到期立即停止访问，运行中的服务每分钟清理一次，服务重启时也会清理。撤销不能删除接收方已经保存的副本，也不能收回已经传输中的数据。</p><p>每个分享账号最多 10 个有效或待清理文件、总计 500 MB；服务总配额为 2 GB。一次分享一个文件，批量内容可以先压缩为 ZIP。分享权限独立于短信账号。</p></details>
+</main><footer>private-sms · 让设备之间的分享更简单</footer>
+<noscript>需要开启 JavaScript 才能在浏览器中加密和解密文件。</noscript>
+</body></html>

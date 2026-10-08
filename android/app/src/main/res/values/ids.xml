@@ -1,0 +1,6 @@
+<resources>
+    <item type="id" name="pairing_code" />
+    <item type="id" name="pairing_consent" />
+    <item type="id" name="pairing_submit" />
+    <item type="id" name="forwarding_switch" />
+</resources>

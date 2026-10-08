@@ -1,0 +1,31 @@
+[Unit]
+Description=Private SMS Go service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=private-sms
+Group=private-sms
+WorkingDirectory=/opt/private-sms
+ExecStart=/opt/private-sms/bin/private-sms -config /etc/private-sms/server.env
+Environment=DATA_DIR=/var/lib/private-sms
+Environment=LISTEN=127.0.0.1:9080
+StateDirectory=private-sms
+StateDirectoryMode=0700
+UMask=0077
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=/var/lib/private-sms
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

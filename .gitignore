@@ -1,0 +1,41 @@
+# Runtime state and credentials (at any depth)
+.env
+.env.*
+!.env.example
+secrets/
+invitations/
+data/
+backups/
+*.p8
+*.pem
+*.key
+*.jks
+*.keystore
+*.mobileprovision
+*.p12
+*.cer
+*.xcuserstate
+xcuserdata/
+local.properties
+# Dependencies and generated output
+node_modules/
+.gradle/
+.kotlin/
+build/
+bin/
+dist/
+.test/
+.wrangler/
+DerivedData/
+*.xcarchive/
+*.ipa
+*.apk
+*.aab
+*.log
+__pycache__/
+.DS_Store
+cloudflare/deployment.json
+cloudflare/.dev.vars*
+# Locally published binaries/checksums; source checkout contains none
+cloudflare/public/download/
+cloudflare/public/downloads/

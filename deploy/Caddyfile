@@ -1,0 +1,5 @@
+sms.example.com {
+    # Publicly trusted certificates are issued/renewed automatically.
+    # Keep Cloudflare DNS-only (gray cloud) to avoid proxying SMS plaintext.
+    reverse_proxy 127.0.0.1:9080
+}
