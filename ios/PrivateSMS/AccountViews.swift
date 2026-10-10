@@ -28,7 +28,7 @@ struct AppleAccountView: View {
                 } header: { Text("试用邀请码") } footer: { Text("已有 Apple 登录账户可留空。邀请码与安卓配对码不同，开通后不用保存。") }
             }
             Section {
-                Text("短信通过 HTTPS 上传到 sms.example.com 并加密保存，默认保留 7 天。服务运营者可解密短信，当前不是端到端加密。苹果推送不包含短信正文。")
+                Text("短信通过 HTTPS 上传到 \(APIClient.serviceEndpoint) 并加密保存，默认保留 7 天。服务运营者可解密短信，当前不是端到端加密。苹果推送不包含短信正文。")
                     .font(.footnote).foregroundStyle(.secondary)
                 Toggle("我已了解并同意上述短信处理方式", isOn: $consent)
                 SignInWithAppleButton(linking ? .continue : .signIn) { request in
@@ -121,7 +121,7 @@ struct AndroidDevicesView: View {
                 }
             }
             Section("安卓上的下一步") {
-                Link("下载 private-sms-client", destination: URL(string: "https://sms.example.com/download/android.apk")!)
+                Link("下载 private-sms-client", destination: AppConfiguration.androidDownloadURL)
                 Text("安装后打开“扫描 iPhone 配对码”，或者手动输入上方代码。阅读上传说明，完成配对、允许短信权限，再开启转发。")
                 Text("先发送 App 内测试消息，再验证真实短信和锁屏转发。")
             }.font(.subheadline)

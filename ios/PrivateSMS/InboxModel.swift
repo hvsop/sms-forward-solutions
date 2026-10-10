@@ -297,7 +297,7 @@ final class InboxModel: ObservableObject {
             let api: APIClient
             if linking {
                 guard let current = client, current.connection.endpoint == APIClient.serviceEndpoint else {
-                    throw ClientError.service("请先连接 sms.example.com 上的原账户，再绑定 Apple 登录。")
+                    throw ClientError.service("请先连接已配置 Apple 登录服务上的原账户，再绑定 Apple 登录。")
                 }
                 api = current
             } else { api = try APIClient.authClient() }

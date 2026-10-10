@@ -137,3 +137,24 @@ struct UnreadState {
         return true
     }
 }
+
+// Release values can be supplied as Xcode build settings without changing source.
+enum AppConfiguration {
+    private static func value(_ key: String) -> String {
+        let value = (Bundle.main.object(forInfoDictionaryKey: key) as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.contains("$(") ? "" : value
+    }
+    static var defaultEndpoint: String { value("SMSDefaultEndpoint") }
+    static var appleLoginEndpoint: String? {
+        let endpoint = value("SMSAppleLoginEndpoint")
+        guard let url = URL(string: endpoint), url.scheme == "https", url.host != nil else { return nil }
+        return endpoint
+    }
+    static var privacyURL: URL { URL(string: "https://github.com/hvsop/sms-forward-solutions/blob/main/docs/privacy.md")! }
+    static var helpURL: URL { URL(string: "https://github.com/hvsop/sms-forward-solutions/blob/main/docs/usage.md")! }
+    static var setupURL: URL { URL(string: "https://github.com/hvsop/sms-forward-solutions#从零开始")! }
+    static var androidDownloadURL: URL {
+        if let url = URL(string: value("SMSAndroidDownloadURL")), url.scheme == "https", url.host != nil { return url }
+        return URL(string: "https://github.com/hvsop/sms-forward-solutions/blob/main/docs/android.md")!
+    }
+}

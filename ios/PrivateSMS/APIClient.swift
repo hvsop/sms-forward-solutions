@@ -95,7 +95,7 @@ final class APIClient {
         let body = try JSONEncoder().encode(["confirmation": "delete-account"])
         _ = try await request("v1/account", method: "DELETE", body: body)
     }
-    static let serviceEndpoint = "https://sms.example.com"
+    static var serviceEndpoint: String { AppConfiguration.appleLoginEndpoint ?? "" }
     private static let authErrors = [
         "apple_not_configured": "Apple 登录尚未启用，请稍后重试；旧用户仍可通过令牌连接。",
         "apple_identity_invalid": "Apple 登录验证未完成，请重新点击登录。",
