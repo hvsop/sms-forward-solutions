@@ -8,6 +8,7 @@ struct InboxView: View {
     @ObservedObject var model: InboxModel
     @ViewState<Bool> private var showSettings = false
     @ViewState<String> private var search = ""
+    @ViewState<Bool> private var showDemo = false
 
     private var filtered: [SMSMessage] {
         if search.isEmpty { return model.messages }
@@ -33,10 +34,14 @@ struct InboxView: View {
                             ContentUnavailableView {
                                 Label("你的私人收件箱", systemImage: "tray.and.arrow.down.fill")
                             } description: {
-                                Text("使用 Apple 账户登录，配对安卓手机。通知仅显示提醒，正文在解锁后查看。")
+                                Text("将安卓手机收到的新短信同步到 iPhone。需要配套安卓 App，以及你自己或可信管理员提供的服务地址和个人读取令牌。")
                             } actions: {
-                                NavigationLink("登录与开通") { AppleAccountView(model: model) }.buttonStyle(.borderedProminent).tint(.teal)
-                                Button("已有读取令牌？连接原账户") { showSettings = true }
+                                Button("连接短信服务") { showSettings = true }.buttonStyle(.borderedProminent).tint(.teal)
+                                Button("先看看演示") { showDemo = true }
+                                Link("如何获取账户与配对", destination: AppConfiguration.helpURL)
+                                if AppConfiguration.appleLoginEndpoint != nil {
+                                    NavigationLink("通过 Apple 登录") { AppleAccountView(model: model) }
+                                }
                             }
                         } else {
                             List {
@@ -54,7 +59,7 @@ struct InboxView: View {
                                 }
                                 Section("收件箱 · \(model.unreadCount) 条未读") {
                                     if filtered.isEmpty {
-                                        Text(model.isLoading ? "正在同步…" : (search.isEmpty ? "还没有短信。配置三星手机后，新短信会出现在这里。" : "已加载的短信中没有匹配项。"))
+                                        Text(model.isLoading ? "正在同步…" : (search.isEmpty ? "还没有短信。配对安卓手机并开启转发后，新短信会出现在这里。" : "已加载的短信中没有匹配项。"))
                                             .foregroundStyle(.secondary).padding(.vertical, 18)
                                     }
                                     ForEach(filtered) { message in
@@ -86,6 +91,7 @@ struct InboxView: View {
                     .navigationDestination(for: MessageRoute.self) { route in MessageDetail(message: route.message, model: model) }
                 }
                 .sheet(isPresented: $showSettings) { SettingsView(model: model) }
+                .sheet(isPresented: $showDemo) { DemoInboxView() }
             }
         }
         .tint(.teal)
@@ -175,7 +181,7 @@ private struct MessageDetail: View {
 private struct SettingsView: View {
     @ObservedObject var model: InboxModel
     @Environment(\.dismiss) private var dismiss
-    @ViewState<String> private var endpoint = "https://sms.example.com"
+    @ViewState<String> private var endpoint = AppConfiguration.defaultEndpoint
     @ViewState<String> private var token = ""
     @ViewState<Bool> private var confirmClearMessages = false
     @ViewState<Bool> private var confirmLogout = false
@@ -183,11 +189,10 @@ private struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                if !model.hasConnection {
+                if !model.hasConnection && AppConfiguration.appleLoginEndpoint != nil {
                     Section { NavigationLink("通过 Apple 登录／开通") { AppleAccountView(model: model) } }
                 }
                 Section {
-                    DisclosureGroup("使用读取令牌连接（原用户／自建服务）") {
                     TextField("https://你的服务地址", text: $endpoint)
                         .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
                     SecureField("读取令牌 READ_TOKEN", text: $token)
@@ -197,9 +202,8 @@ private struct SettingsView: View {
                             if await model.connect(endpoint: endpoint, token: token) { token = ""; dismiss() }
                         }
                     }.disabled(model.isConnecting || endpoint.isEmpty || token.isEmpty)
-                    }
                 } header: { Text("连接服务") } footer: {
-                    Text("读取令牌保存在本机钥匙串，不同步到 iCloud。修改连接时请重新填写。")
+                    Text("向可信服务管理员获取个人读取令牌，或按帮助文档自行部署。令牌是账户凭据，请妥善保存；它不同于安卓配对码。保存在本机钥匙串，不同步到 iCloud。修改连接时请重新填写。")
                 }
                 if let error = model.error { Section { Text(error).foregroundStyle(.orange).font(.footnote) } }
                 if model.hasConnection {
@@ -224,9 +228,11 @@ private struct SettingsView: View {
                     Section("账户管理") {
                         if model.profile?.appleLinked == true || model.usesAppleLogin {
                             Label("已绑定 Apple 登录", systemImage: "checkmark.shield")
-                            NavigationLink("重新通过 Apple 登录") { AppleAccountView(model: model) }
+                            if AppConfiguration.appleLoginEndpoint != nil {
+                                NavigationLink("重新通过 Apple 登录") { AppleAccountView(model: model) }
+                            }
                             Button("退出登录") { confirmLogout = true }
-                        } else if model.endpoint == APIClient.serviceEndpoint {
+                        } else if AppConfiguration.appleLoginEndpoint != nil && model.endpoint == APIClient.serviceEndpoint && model.profile?.appleAvailable == true {
                             NavigationLink("绑定 Apple 账户，支持换机恢复") { AppleAccountView(model: model, linking: true) }
                         }
                         NavigationLink("注销账户") { AccountDeletionView(model: model) }
@@ -237,6 +243,13 @@ private struct SettingsView: View {
                     Text("苹果推送只包含通用提醒。短信经自己的服务端处理并加密保存；此版本不是端到端加密。")
                     Text("服务端和网络需要保持在线。首次连接后，可在安卓端发送测试消息，验证 iPhone 提醒。")
                 }.font(.footnote).foregroundStyle(.secondary)
+                Section("帮助与隐私") {
+                    Link("连接与配对指南", destination: AppConfiguration.helpURL)
+                    Link("部署自己的短信服务", destination: AppConfiguration.setupURL)
+                    Link("隐私政策", destination: AppConfiguration.privacyURL)
+                    Text("仅同步安卓端开启转发后新收到的 SMS，不读取 iPhone 系统短信，不支持通话、彩信或 RCS。")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
             }
             .navigationTitle("设置").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { dismiss() } } }
@@ -283,5 +296,78 @@ private struct AccountDeletionView: View {
             if let error = model.error { Section { Text(error).foregroundStyle(.orange).font(.footnote) } }
         }
         .navigationTitle("注销账户").navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// Available to every user before connecting. All messages are synthetic and stay in memory.
+private struct DemoInboxView: View {
+    @Environment(\.dismiss) private var dismiss
+    @ViewState<[SMSMessage]> private var messages = Self.samples
+    @ViewState<String> private var search = ""
+    @ViewState<Bool> private var copied = false
+
+    private static var samples: [SMSMessage] {
+        let date = ISO8601DateFormatter().string(from: Date())
+        return [
+            SMSMessage(id: "demo-code", sender: "示例服务", content: "【演示短信】你的验证码是 246810，5 分钟内有效。这是虚构内容，不用于任何真实账户。", sim: "备用手机 · SIM 1", sourceTime: "", receivedAt: date, read: false),
+            SMSMessage(id: "demo-delivery", sender: "示例快递", content: "【演示短信】你的包裹已送达，请在方便时领取。所有信息均为示例。", sim: "备用手机 · SIM 1", sourceTime: "", receivedAt: date, read: false),
+            SMSMessage(id: "demo-reminder", sender: "示例提醒", content: "【演示短信】明天下午 3 点的预约已确认。这条消息展示已读短信的样式。", sim: "备用手机 · SIM 1", sourceTime: "", receivedAt: date, read: true)
+        ]
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    Label("演示模式 · 无需连接服务器", systemImage: "play.rectangle")
+                        .font(.subheadline.weight(.semibold))
+                    Text("以下均为虚构短信。可以查看详情、体验已读变化与验证码复制，不访问你的短信或发送网络请求。")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+                Section("收件箱 · \(messages.filter(\.isUnread).count) 条未读") {
+                    ForEach(messages.filter { search.isEmpty || $0.sender.localizedCaseInsensitiveContains(search) || $0.content.localizedCaseInsensitiveContains(search) }) { message in
+                        NavigationLink(value: message.id) { MessageRow(message: message) }
+                    }
+                }
+                Section {
+                    Text("实际使用时，安卓需要开机、联网并开启转发。iPhone 通知仅显示通用提醒和未读角标。")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("演示收件箱")
+            .searchable(text: $search, prompt: "搜索演示短信")
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { dismiss() } } }
+            .navigationDestination(for: String.self) { id in
+                if let message = messages.first(where: { $0.id == id }) {
+                    List {
+                        Section {
+                            Label("演示数据", systemImage: "play.rectangle").foregroundStyle(.teal)
+                            LabeledContent("发件人", value: message.sender)
+                            LabeledContent("收录时间", value: message.dateLabel)
+                            LabeledContent("SIM", value: message.sim)
+                        }
+                        Section("短信正文") { Text(message.content).padding(.vertical, 8) }
+                        Section {
+                            if let code = message.verificationCode {
+                                Button("复制验证码 \(code)", systemImage: "number") { copy(code) }
+                            }
+                            Button("复制全文", systemImage: "doc.on.doc") { copy(message.content) }
+                            if copied { Text("已复制，仅供本机使用，90 秒后过期。") .font(.footnote).foregroundStyle(.secondary) }
+                        }
+                        Section { Text("返回列表后，这条短信会显示为已读。演示不会更改真实账户或 App 角标。") .font(.footnote).foregroundStyle(.secondary) }
+                    }
+                    .navigationTitle("短信详情").navigationBarTitleDisplayMode(.inline)
+                    .onAppear {
+                        copied = false
+                        if let index = messages.firstIndex(where: { $0.id == id }) { messages[index].read = true }
+                    }
+                }
+            }
+        }.tint(.teal)
+    }
+
+    private func copy(_ value: String) {
+        UIPasteboard.general.setItems([["public.utf8-plain-text": value]], options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(90)])
+        copied = true
     }
 }

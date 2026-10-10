@@ -1,0 +1,50 @@
+# iOS App Store 发布
+
+本文是发布准备流程；代码仓库和 TestFlight 通过不等于 App Store 正式审核通过。
+
+## 产品定位与开通
+
+private-sms-server 是配套的 iPhone 短信收件箱，需要安卓发送端及兼容后端。商店介绍与首屏应明确前置条件，不承诺下载后自动获得公共服务。维护者的 Cloudflare 实例属于有限邀请服务，当前最多 10 个账户；不能以此承接无限用户。
+
+App 首页提供无网络、仅虚构数据的演示，以及真实服务连接入口。审核人员应能使用独立审核账户验证实际读取、已读、清空、注销等功能；演示不能替代真实后端访问。需要真实短信和 APNs 验证时，准备配对安卓与演示视频，不提供维护者个人账户。
+
+## 发行配置
+
+保留现有正式 Bundle ID、Team 和钥匙串 service/account，确保覆盖升级后能继续使用已保存连接。首次从开源源码构建维护者版本应通过构建参数设置发行配置：
+
+```sh
+xcodebuild -project ios/PrivateSMS.xcodeproj -scheme PrivateSMS \
+  -configuration Release -destination 'generic/platform=iOS' \
+  -archivePath /private/path/PrivateSMS.xcarchive \
+  DEVELOPMENT_TEAM=YOUR_TEAM PRODUCT_BUNDLE_IDENTIFIER=YOUR_BUNDLE_ID \
+  SMS_DEFAULT_ENDPOINT=https://your-service.example.com \
+  SMS_ANDROID_DOWNLOAD_URL=https://your-service.example.com/download/android.apk \
+  archive
+```
+
+Cloudflare 发行版不要设置 `SMS_APPLE_LOGIN_ENDPOINT`。如需 Go Apple 登录，配置好后端、授权与账户撤销能力后再设置该值。不要把构建参数中的真实私钥或令牌写入代码。
+
+检查 PrivacyInfo.xcprivacy、App Store Connect 隐私标签、隐私政策与真实实现一致。当前代码没有广告/追踪 SDK，也没有必须声明使用理由的 UserDefaults/文件时间戳等 API；添加 SDK 或代码后应重新审查。
+
+## 商店与审核材料
+
+- App 名称、简介、描述和关键词真实说明 Android → iPhone 的 SMS 同步；不宣称读取 iPhone 系统短信、通话或端到端加密。
+- 根据真实 UI 制作当前支持尺寸的 iPhone 截图，只展示虚构短信，并明确截图使用演示模式。不得包含真实号码、令牌、配对码或验证码。
+- 提供公开可访问的隐私政策和支持 URL，并从 App 内可访问。
+- 隐私标签按实际数据用途申报。维护者托管版涉及短信内容、账户标识和推送设备标识，关联账户、仅用于 App 功能，不作追踪。基础设施日志如有额外保留/用途，需相应补充披露。
+- 如提供账户创建，确认可在 App 内注销，并处理可选 Apple 登录的撤销。上传资料前用一次性测试账户确认删除真实生效。
+- 记录审核账户凭据到私有文件，在 App Review Information 中提供，不写进本仓库。审核可能注销账户，提交前应确认凭据可用，并准备恢复独立审核账户的流程。
+- 根据实际年龄受众、地区、加密使用情况完成问卷。需开发者确认或签署的声明由账户持有人核对。
+- 定价和销售地区由发布者决定；地区性资料要求（例如中国大陆备案、欧盟 trader 信息）须在选择相应地区前确认。
+
+## 发布前验收
+
+1. 新安装 → 首屏 → 演示 → 配置真实服务 → 通知授权 → 安卓配对。
+2. 保持现有 Bundle ID 覆盖更新，核对旧令牌、设备认证和历史读取仍有效。
+3. 两条真实/测试短信：锁屏推送、角标 2 → 1 → 0、列表逐条已读。
+4. 清空短信不清除连接；注销专用测试账户后该令牌不能继续使用。
+5. 断网、服务器错误、满额、通知关闭、安卓未配对时可理解且可恢复。
+6. 默认服务、下载、帮助与隐私入口不依赖计划下线的 Linux。
+7. 正式签名 Archive → Validate → 上传 → TestFlight 真机验收 → App Store 送审。
+
+首发建议选择手动发布，在审核通过后由发布者决定公开时间。不要把“已上传”“等待审核”写成“已上架”。

@@ -13,9 +13,9 @@
 
 - Target → Signing & Capabilities：选择自己的 Team，Automatically manage signing。
 - Bundle Identifier 修改为自己的 App ID；后端 `APNS_TOPIC` 必须完全一致。
-- `PrivateSMS/APIClient.swift` 中 `serviceEndpoint` 是 **Apple 登录服务**地址，若使用该功能，改成自己的 Go 后端。
-- `PrivateSMS/InboxView.swift` 的初始服务器地址可改为自己的默认地址；已有连接会以钥匙串保存值为准。用户也可在设置中手工填写。
-- `PrivateSMS/AccountViews.swift` 的 APK 下载 URL 和 Apple 登录隐私说明域名应改成自己的发布地址。
+- 在 Xcode Build Settings 的 User-Defined 设置发行版的 `SMS_DEFAULT_ENDPOINT`（默认服务地址，可留空）、`SMS_ANDROID_DOWNLOAD_URL`（可信 APK 下载或说明页，可留空）。不填写时用户自行输入服务地址，下载入口指向源码构建文档。
+- 仅使用 Cloudflare/读取令牌时，保持 `SMS_APPLE_LOGIN_ENDPOINT` 为空；首页和设置不会展示 Apple 登录入口。保留 Go Apple 登录的发行版可将此值设为自己已配置 Apple 登录的 HTTPS 服务 origin；后端与 App ID 必须匹配。
+- 这些值也可通过 `xcodebuild SMS_DEFAULT_ENDPOINT=...` 等参数传入。不要将 Team、令牌、私钥写进公开源码。App 内隐私和帮助链接默认指向本仓库，fork 发行者须替换为自己的政策及支持入口。
 - 默认工程声明 Push Notifications 和 Sign in with Apple。只使用令牌连接、不使用 Apple 登录时，可移除 Apple 登录 entitlement 和对应 Xcode capability；请不要移除推送能力。若保留 Apple 登录，需要在自己的 App ID 上启用该能力。
 
 Cloudflare 精简版只使用“读取令牌连接”，不要点击 Apple 登录开通。`private-sms-server` 是 iPhone 显示名称，可以自行修改 `Info.plist`。
@@ -48,3 +48,9 @@ swiftc ios/PrivateSMS/Models.swift ios/Tests/ReadStateTests/main.swift -o bin/re
 | TestFlight / App Store Release | production |
 
 后端环境必须相同；建议调试与正式服务分开，避免混用设备令牌。正式 App Store 还需真实隐私政策、审核材料、地区发布与商店要求，本仓库不保证通过审核。
+
+## App Store 正式版准备
+
+当前源代码版本为 1.2（9）。正式版提供读取令牌连接、可选 Apple 登录配置、隐私/帮助入口，以及无网络的虚构短信演示。PrivacyInfo.xcprivacy 声明短信、账户标识和推送设备标识用于 App 功能，不用于追踪；App Store Connect 隐私标签仍需按实际发行版及服务配置单独填写。
+
+正式上架材料和检查点见 [App Store 发布](app-store.md)。发布者不能把模拟器构建成功或演示模式截图当作 APNs 真机验收。
