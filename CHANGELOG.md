@@ -1,5 +1,11 @@
 # 更新记录
 
+## Android 1.2.0 (7) — Google Play candidate
+
+- Target Android 16 / API 36 for new Play submissions.
+- Explain background SMS upload before requesting permission and provide the Android privacy policy.
+- Support release-specific default endpoints and external signing properties without changing saved pairings.
+
 ## iOS 1.2（9）· App Store 候选版 · 2026-10-10
 
 - 首屏优先连接个人读取令牌，明确需要安卓发送端和兼容服务。

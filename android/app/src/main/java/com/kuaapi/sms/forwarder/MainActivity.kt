@@ -173,6 +173,14 @@ class MainActivity : Activity() {
     }
     private fun requestSms() {
         if (state.smsAllowed) { message("短信权限已允许。"); return }
+        val endpoint = binding?.endpoint ?: return
+        AlertDialog.Builder(this).setTitle("允许短信同步？")
+            .setMessage("private-sms-client 需要接收短信权限。只有配对并开启转发后，应用才会在后台接收所有 SIM 卡的新 SMS，将发件人、正文（可能含验证码）、接收时间和 SIM 标识通过 HTTPS 上传至：\n\n$endpoint\n\n用途仅为让你在已配对的接收端查看短信。服务器运营者能够解密内容，这不是端到端加密。我们不读取历史短信、通讯录，也不发送短信。你可随时关闭转发或解除配对；关闭期间的新短信不会补传。")
+            .setNegativeButton("暂不允许", null)
+            .setNeutralButton("隐私政策") { _, _ -> openPrivacyPolicy() }
+            .setPositiveButton("同意并继续") { _, _ -> requestSystemSmsPermission() }.show()
+    }
+    private fun requestSystemSmsPermission() {
         if (prefs.getBoolean("permission_asked", false) && !shouldShowRequestPermissionRationale(Manifest.permission.RECEIVE_SMS)) {
             AlertDialog.Builder(this).setTitle("允许接收短信").setMessage("请到应用信息中允许短信权限。如果权限不可选，先从右上角菜单允许“受限设置”。")
                 .setNegativeButton("取消", null).setPositiveButton("打开应用设置") { _, _ -> appSettings() }.show()
@@ -189,7 +197,7 @@ class MainActivity : Activity() {
     private fun tools() {
         val current = binding
         if (current == null) {
-            message("在 iPhone 的 private-sms-server 中登录，再打开“设置 → 安卓设备与配对 → 添加安卓手机”，生成配对码或二维码。配对码有效期为 10 分钟，只能使用一次。\n\n服务器地址必须与 iPhone 一致，默认是 https://sms.example.com。Cloudflare 版使用它自己的地址和账户。")
+            message("需要能够接收短信的安卓手机，以及你自己或可信管理员提供的兼容服务；安装 App 不会自动开通公共账户。\n\n先在 iPhone 的 private-sms-server 连接服务，再打开“设置 → 安卓设备与配对 → 添加安卓手机”，生成配对码或二维码。配对码有效期为 10 分钟，只能使用一次。\n\n服务器地址必须与 iPhone 一致。当前默认地址为 ${ServerEndpoint.DEFAULT}，可按管理员提供的信息修改。")
             return
         }
         AlertDialog.Builder(this).setTitle("连接检查与测试")
@@ -236,7 +244,13 @@ class MainActivity : Activity() {
     private fun privacy() {
         AlertDialog.Builder(this).setTitle("隐私与帮助")
             .setMessage("private-sms-client ${BuildConfig.VERSION_NAME}\n\n转发范围\n只转发开启后新收到的 SMS，覆盖所有 SIM 卡。不读取历史短信和通讯录，不发送短信，不支持 RCS、彩信或电话。关闭开关后，新短信不会入队，已有队列暂停上传；已在途的一条可能已送达，重新开启不会补发关闭期间的短信。\n\n数据与安全\n短信通过 HTTPS 上传至你选择的服务器（当前：${binding?.endpoint ?: draft.endpoint}）。凭据和待发送内容在本机加密保存，成功后删除本地短信内容。队列最多 1,000 条，超过 7 天的条目在下次处理时清理。服务器默认保留 7 天。当前服务器运营者可解密短信，并非端到端加密。\n\n停止与删除\n随时关闭转发；解除配对会撤销这台手机的凭据并删除本地队列，服务器中的短信需在接收端删除。\n\n转发排查\n确认短信权限、后台运行和网络均正常；如果同时使用其他短信转发工具，请关闭它们的转发开关，避免重复收到。")
+            .setNeutralButton("完整隐私政策") { _, _ -> openPrivacyPolicy() }
             .setPositiveButton("知道了", null).show()
+    }
+    private fun openPrivacyPolicy() {
+        val url = "https://github.com/hvsop/sms-forward-solutions/blob/main/docs/android-privacy.md"
+        try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+        catch (_: android.content.ActivityNotFoundException) { message("请用浏览器打开：\n$url") }
     }
     private fun disconnect() {
         val current = binding ?: return

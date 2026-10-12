@@ -1,6 +1,6 @@
 # 安卓编译、安装与后台配置
 
-需要 JDK 17、Android SDK Platform 35 / Build Tools 35.0.0。Android Studio 可以安装 SDK，工程自带 Gradle 8.13 Wrapper。最低 Android 8.0，当前 versionName=1.1.1、versionCode=6。
+需要 JDK 17、Android SDK Platform 36 / Build Tools 36.0.0。Android Studio 可以安装 SDK，工程自带 Gradle 8.13 Wrapper。最低 Android 8.0，当前 versionName=1.2.0、versionCode=7。
 
 ## 开发构建
 
@@ -54,3 +54,7 @@ APK 可放 GitHub Releases，或后端固定 `/download/android.apk`。不要把
 安装后按 [配对步骤](usage.md) 连接。允许 RECEIVE_SMS、后台运行和后台数据；三星将应用从休眠/深度休眠列表中移除，电池设置为不受限制。权限被撤回、强制停止、断电或系统限制时可能无法及时处理 SMS，应在实际机型验证。
 
 转发范围：开启后的所有 SIM 新 SMS。关闭时新短信不入队、已有队列暂停；重新开启不会补回关闭期间的短信。队列最多 1,000 条，超过 7 天的条目在后续处理时清理。App 内“发送测试消息”不产生运营商短信费用，也不计入真实短信上传数。
+
+## Google Play
+
+AAB 构建、原签名托管、短信权限例外审核与测试要求见 [Google Play 发布](google-play.md)。安卓专用[隐私政策](android-privacy.md)说明后台接收和上传、相机、保留及删除。

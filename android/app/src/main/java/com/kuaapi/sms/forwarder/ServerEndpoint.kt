@@ -4,7 +4,7 @@ import java.net.URI
 import java.util.Locale
 
 object ServerEndpoint {
-    const val DEFAULT = "https://sms.example.com"
+    const val DEFAULT = BuildConfig.DEFAULT_ENDPOINT
     fun normalize(raw: String): String {
         val uri = URI(raw.trim())
         require(uri.scheme?.lowercase(Locale.ROOT) == "https")
