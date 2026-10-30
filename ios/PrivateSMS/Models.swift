@@ -153,8 +153,5 @@ enum AppConfiguration {
     static var privacyURL: URL { URL(string: "https://github.com/hvsop/sms-forward-solutions/blob/main/docs/privacy.md")! }
     static var helpURL: URL { URL(string: "https://github.com/hvsop/sms-forward-solutions/blob/main/docs/usage.md")! }
     static var setupURL: URL { URL(string: "https://github.com/hvsop/sms-forward-solutions#从零开始")! }
-    static var androidDownloadURL: URL {
-        if let url = URL(string: value("SMSAndroidDownloadURL")), url.scheme == "https", url.host != nil { return url }
-        return URL(string: "https://github.com/hvsop/sms-forward-solutions/blob/main/docs/android.md")!
-    }
+
 }
