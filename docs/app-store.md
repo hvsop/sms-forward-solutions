@@ -18,7 +18,6 @@ xcodebuild -project ios/PrivateSMS.xcodeproj -scheme PrivateSMS \
   -archivePath /private/path/PrivateSMS.xcarchive \
   DEVELOPMENT_TEAM=YOUR_TEAM PRODUCT_BUNDLE_IDENTIFIER=YOUR_BUNDLE_ID \
   SMS_DEFAULT_ENDPOINT=https://your-service.example.com \
-  SMS_ANDROID_DOWNLOAD_URL=https://your-service.example.com/download/android.apk \
   archive
 ```
 
@@ -28,7 +27,9 @@ Cloudflare 发行版不要设置 `SMS_APPLE_LOGIN_ENDPOINT`。如需 Go Apple �
 
 ## 商店与审核材料
 
-- App 名称、简介、描述和关键词真实说明 Android → iPhone 的 SMS 同步；不宣称读取 iPhone 系统短信、通话或端到端加密。
+- 商店公开文案与 App 内操作说明使用“兼容发送端”“配套客户端”“接收端”等功能名称；不要在副标题、描述或 App 界面宣传第三方平台或下载 APK。首页及配对页必须明确需要兼容发送端和后端，并提供真实的兼容性与安装指南，不暗示任意手机均能作为发送端。
+- 兼容性文档及私有审核说明应如实解释当前发送端仅支持 Android，接收端不读取系统短信。不要更改 API 协议中的平台标识、伪装兼容性或隐藏审核功能；也不得宣称通话或端到端加密。
+- 若 Apple 要求修改 app binary，必须更新 App 内文字、提升构建号并重新归档上传；仅更新商店元数据不会改变已上传构建。
 - 根据真实 UI 制作当前支持尺寸的 iPhone 截图，只展示虚构短信，并明确截图使用演示模式。不得包含真实号码、令牌、配对码或验证码。
 - 提供公开可访问的隐私政策和支持 URL，并从 App 内可访问。
 - 隐私标签按实际数据用途申报。维护者托管版涉及短信内容、账户标识和推送设备标识，关联账户、仅用于 App 功能，不作追踪。基础设施日志如有额外保留/用途，需相应补充披露。
@@ -44,7 +45,7 @@ Cloudflare 发行版不要设置 `SMS_APPLE_LOGIN_ENDPOINT`。如需 Go Apple �
 3. 两条真实/测试短信：锁屏推送、角标 2 → 1 → 0、列表逐条已读。
 4. 清空短信不清除连接；注销专用测试账户后该令牌不能继续使用。
 5. 断网、服务器错误、满额、通知关闭、安卓未配对时可理解且可恢复。
-6. 默认服务、下载、帮助与隐私入口不依赖计划下线的 Linux。
+6. 首页、设置、演示、配对、可选 Apple 登录与确认弹窗均核对可见文案；默认服务、兼容性/安装指南、帮助与隐私入口不依赖计划下线的 Linux。
 7. 正式签名 Archive → Validate → 上传 → TestFlight 真机验收 → App Store 送审。
 
 首发建议选择手动发布，在审核通过后由发布者决定公开时间。不要把“已上传”“等待审核”写成“已上架”。

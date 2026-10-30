@@ -13,7 +13,7 @@
 
 - Target → Signing & Capabilities：选择自己的 Team，Automatically manage signing。
 - Bundle Identifier 修改为自己的 App ID；后端 `APNS_TOPIC` 必须完全一致。
-- 在 Xcode Build Settings 的 User-Defined 设置发行版的 `SMS_DEFAULT_ENDPOINT`（默认服务地址，可留空）、`SMS_ANDROID_DOWNLOAD_URL`（可信 APK 下载或说明页，可留空）。不填写时用户自行输入服务地址，下载入口指向源码构建文档。
+- 在 Xcode Build Settings 的 User-Defined 设置发行版的 `SMS_DEFAULT_ENDPOINT`（默认服务地址，可留空）。不填写时用户自行输入服务地址。配对页通过“发送端兼容性与安装指南”打开使用文档，不再直接下载 APK；旧的 `SMS_ANDROID_DOWNLOAD_URL` 配置已移除。
 - 仅使用 Cloudflare/读取令牌时，保持 `SMS_APPLE_LOGIN_ENDPOINT` 为空；首页和设置不会展示 Apple 登录入口。保留 Go Apple 登录的发行版可将此值设为自己已配置 Apple 登录的 HTTPS 服务 origin；后端与 App ID 必须匹配。
 - 这些值也可通过 `xcodebuild SMS_DEFAULT_ENDPOINT=...` 等参数传入。不要将 Team、令牌、私钥写进公开源码。App 内隐私和帮助链接默认指向本仓库，fork 发行者须替换为自己的政策及支持入口。
 - 默认工程声明 Push Notifications 和 Sign in with Apple。只使用令牌连接、不使用 Apple 登录时，可移除 Apple 登录 entitlement 和对应 Xcode capability；请不要移除推送能力。若保留 Apple 登录，需要在自己的 App ID 上启用该能力。

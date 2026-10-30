@@ -34,11 +34,11 @@ struct InboxView: View {
                             ContentUnavailableView {
                                 Label("你的私人收件箱", systemImage: "tray.and.arrow.down.fill")
                             } description: {
-                                Text("将安卓手机收到的新短信同步到 iPhone。需要配套安卓 App，以及你自己或可信管理员提供的服务地址和个人读取令牌。")
+                                Text("查看配对发送端新收到的短信。需要兼容的发送端手机、配套客户端，以及自己或可信管理员提供的服务地址和个人读取令牌。请先查看兼容性与配对指南。")
                             } actions: {
                                 Button("连接短信服务") { showSettings = true }.buttonStyle(.borderedProminent).tint(.teal)
                                 Button("先看看演示") { showDemo = true }
-                                Link("如何获取账户与配对", destination: AppConfiguration.helpURL)
+                                Link("兼容性、账户与配对指南", destination: AppConfiguration.helpURL)
                                 if AppConfiguration.appleLoginEndpoint != nil {
                                     NavigationLink("通过 Apple 登录") { AppleAccountView(model: model) }
                                 }
@@ -59,7 +59,7 @@ struct InboxView: View {
                                 }
                                 Section("收件箱 · \(model.unreadCount) 条未读") {
                                     if filtered.isEmpty {
-                                        Text(model.isLoading ? "正在同步…" : (search.isEmpty ? "还没有短信。配对安卓手机并开启转发后，新短信会出现在这里。" : "已加载的短信中没有匹配项。"))
+                                        Text(model.isLoading ? "正在同步…" : (search.isEmpty ? "还没有短信。配对兼容的发送端手机并开启转发后，新短信会出现在这里。" : "已加载的短信中没有匹配项。"))
                                             .foregroundStyle(.secondary).padding(.vertical, 18)
                                     }
                                     ForEach(filtered) { message in
@@ -203,11 +203,11 @@ private struct SettingsView: View {
                         }
                     }.disabled(model.isConnecting || endpoint.isEmpty || token.isEmpty)
                 } header: { Text("连接服务") } footer: {
-                    Text("向可信服务管理员获取个人读取令牌，或按帮助文档自行部署。令牌是账户凭据，请妥善保存；它不同于安卓配对码。保存在本机钥匙串，不同步到 iCloud。修改连接时请重新填写。")
+                    Text("向可信服务管理员获取个人读取令牌，或按帮助文档自行部署。令牌是账户凭据，请妥善保存；它不同于设备配对码。保存在本机钥匙串，不同步到 iCloud。修改连接时请重新填写。")
                 }
                 if let error = model.error { Section { Text(error).foregroundStyle(.orange).font(.footnote) } }
                 if model.hasConnection {
-                    Section("设备") { NavigationLink("安卓设备与配对") { AndroidDevicesView(model: model) } }
+                    Section("设备") { NavigationLink("发送端设备与配对") { SenderDevicesView(model: model) } }
                     Section("通知") {
                         Text(model.notificationStatus).font(.subheadline)
                         Button("开启／重新注册通知") { Task { await model.registerNotifications(requestPermission: true) } }
@@ -223,7 +223,7 @@ private struct SettingsView: View {
                         Button(model.isClearingMessages ? "正在清空短信…" : "清空全部短信", role: .destructive) { confirmClearMessages = true }
                             .disabled(model.isClearingMessages)
                     } header: { Text("短信管理") } footer: {
-                        Text("只清空当前账户的短信。保留连接设置、安卓配对和推送通知，之后仍可接收新短信。")
+                        Text("只清空当前账户的短信。保留连接设置、设备配对和推送通知，之后仍可接收新短信。")
                     }
                     Section("账户管理") {
                         if model.profile?.appleLinked == true || model.usesAppleLogin {
@@ -241,13 +241,13 @@ private struct SettingsView: View {
                 }
                 Section("隐私与运行条件") {
                     Text("苹果推送只包含通用提醒。短信经自己的服务端处理并加密保存；此版本不是端到端加密。")
-                    Text("服务端和网络需要保持在线。首次连接后，可在安卓端发送测试消息，验证 iPhone 提醒。")
+                    Text("发送端、服务端和网络需要保持在线。首次连接后，可通过配套客户端发送测试消息，验证此设备能否收到提醒。")
                 }.font(.footnote).foregroundStyle(.secondary)
                 Section("帮助与隐私") {
                     Link("连接与配对指南", destination: AppConfiguration.helpURL)
                     Link("部署自己的短信服务", destination: AppConfiguration.setupURL)
                     Link("隐私政策", destination: AppConfiguration.privacyURL)
-                    Text("仅同步安卓端开启转发后新收到的 SMS，不读取 iPhone 系统短信，不支持通话、彩信或 RCS。")
+                    Text("仅同步兼容发送端开启转发后新收到的 SMS。本 App 只用于接收，不读取本机系统短信，也不能作为短信发送端；不支持通话、彩信或 RCS。")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }
@@ -256,14 +256,14 @@ private struct SettingsView: View {
             .onAppear { if !model.endpoint.isEmpty { endpoint = model.endpoint } }
             .onDisappear { token = "" }
             .onChange(of: model.hasConnection) { _, connected in if !connected { dismiss() } }
-            .confirmationDialog("退出当前 iPhone？", isPresented: $confirmLogout, titleVisibility: .visible) {
+            .confirmationDialog("退出当前设备？", isPresented: $confirmLogout, titleVisibility: .visible) {
                 Button("退出登录", role: .destructive) { Task { await model.logout() } }
-            } message: { Text("保留短信和安卓配对，暂停这台 iPhone 的推送。使用同一个 Apple 账户可重新登录。") }
+            } message: { Text("保留短信和设备配对，暂停此设备的推送。使用同一个 Apple 账户可重新登录。") }
             .confirmationDialog("清空当前账户的全部短信？", isPresented: $confirmClearMessages, titleVisibility: .visible) {
                 Button("清空短信", role: .destructive) { Task { _ = await model.clearMessages() } }
                 Button("取消", role: .cancel) { }
             } message: {
-                Text("删除的短信无法恢复。账户、连接设置、安卓配对和通知保持有效。")
+                Text("删除的短信无法恢复。账户、连接设置、设备配对和通知保持有效。")
             }
         }
     }
@@ -278,7 +278,7 @@ private struct AccountDeletionView: View {
     var body: some View {
         Form {
             Section {
-                Text("注销会永久删除账户和全部短信，并使读取令牌、安卓转发和推送注册失效。之后需要重新开通账户。")
+                Text("注销会永久删除账户和全部短信，并使读取令牌、发送端上传权限和推送注册失效。之后需要重新开通账户。")
                 Text("如果只想清理短信，请返回上一页使用“清空全部短信”。")
             }
             Section {
@@ -330,7 +330,7 @@ private struct DemoInboxView: View {
                     }
                 }
                 Section {
-                    Text("实际使用时，安卓需要开机、联网并开启转发。iPhone 通知仅显示通用提醒和未读角标。")
+                    Text("实际使用时，兼容的发送端手机需要开机、联网并开启转发。本机通知仅显示通用提醒和未读角标。")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }
